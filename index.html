@@ -1,0 +1,170 @@
+<html>
+
+<head>
+    <title>Speech To Code</title>
+    <link rel="stylesheet" type="text/css" href="index.css">
+    </link>
+</head>
+
+<body>
+    <div id="warning">
+        <h1>Speech Recognition Speech SDK not found.</h1>
+    </div>
+
+    <div id="content" class="container">
+        <div class='header'>
+            Speech To Code Demo
+        </div>
+        <div class="sb-reg">
+            <div>
+                <input class="subscription" id="subscriptionKey" type="text" size="40" placeholder="subscription key">
+
+            </div>
+            <div>
+                <input class="region" id="serviceRegion" type="text" size="40" placeholder="service region">
+
+            </div>
+        </div>
+        <div class='processing'>
+            <p id='processing_text'>READY!!</p>
+        </div>
+        <div>
+            <button class="speak_button" id="startRecognizeOnceAsyncButton">Speak code line</button>
+        </div>
+        <div class="spoken_code">
+            <div class="spoken_cmd_div">
+                <div>SPOKEN COMMANDS</div>
+                <div><textarea id="spokenCmds" class="spoken_cmd"></textarea></div>
+            </div>
+
+            <div class="code_area_div">
+                <div>CODE AREA</div>
+                <div><textarea id="codeArea" class="code_area"></textarea></div>
+            </div>
+        </div>
+
+        <div class="last_intent_div">
+            <div>LATEST INTENT TRIGGERED</div>
+            <div>
+                <p id="lastIntent" class="last_intent">Name of intent triggered.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Speech SDK reference sdk. -->
+    <script src="microsoft.cognitiveservices.speech.sdk.bundle.js"></script>
+
+    <!-- Speech SDK USAGE -->
+    <script>
+        // status fields and start button in UI
+        var phraseDiv;
+        var startRecognizeOnceAsyncButton;
+
+        // subscription key and region for speech services.
+        var subscriptionKey, serviceRegion;
+        var authorizationToken;
+        var SpeechSDK;
+        var recognizer;
+        var code_script = "";
+
+        document.addEventListener("DOMContentLoaded", function () {
+            startRecognizeOnceAsyncButton = document.getElementById("startRecognizeOnceAsyncButton");
+            subscriptionKey = document.getElementById("subscriptionKey");
+            serviceRegion = document.getElementById("serviceRegion");
+            codeArea = document.getElementById("codeArea");
+            spokenCmds = document.getElementById("spokenCmds");
+            lastIntent = document.getElementById("lastIntent");
+            processing_text = document.getElementById("processing_text");
+
+            spokenCmds.innerHTML = "";
+            codeArea.innerHTML = "";
+            processing_text.innerHTML = "READY"
+
+            startRecognizeOnceAsyncButton.addEventListener("click", function () {
+                startRecognizeOnceAsyncButton.disabled = true;
+                lastIntent.innerHTML = "";
+
+                // if we got an authorization token, use the token. Otherwise use the provided subscription key
+                var speechConfig;
+                if (authorizationToken) {
+                    speechConfig = SpeechSDK.SpeechConfig.fromAuthorizationToken(authorizationToken, serviceRegion.value);
+                } else {
+                    if (subscriptionKey.value === "" || subscriptionKey.value === "subscription") {
+                        alert("Please enter your Microsoft Cognitive Services Speech subscription key!");
+                        return;
+                    }
+                    speechConfig = SpeechSDK.SpeechConfig.fromSubscription(subscriptionKey.value, serviceRegion.value);
+                    processing_text.innerHTML = "RECORDING_COMMAND"
+                }
+
+                speechConfig.speechRecognitionLanguage = "en-US";
+                var audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
+                recognizer = new SpeechSDK.SpeechRecognizer(speechConfig, audioConfig);
+
+                recognizer.recognizeOnceAsync(
+                    function (result) {
+                        startRecognizeOnceAsyncButton.disabled = false;
+                        spokenCmds.innerHTML += result.text + "\n";
+                        window.console.log(result);
+
+                        processing_text.innerHTML = "PROCESSING INTENT AND CODE...... HOLD ON"
+
+                        fetch('http://localhost:5000/identify', {
+                            method: 'post',
+                            headers: {
+                                "Content-type": "application/json"
+                            },
+                            body: JSON.stringify({
+                                codeScript: code_script,
+                                nextLine: result.text
+                            })
+                        })
+                            .then(x => x.json())
+                            .then(function (data) {
+                                code_script = data.newCode;
+                                lastIntent.innerHTML = data.intent;
+                                codeArea.innerHTML = code_script;
+                                processing_text.innerHTML = "READY"
+                            })
+                            .catch(function (err) {
+                                // TODO
+                                console.log(err);
+                                processing_text.innerHTML = "READY"
+                            });
+
+
+
+                        recognizer.close();
+                        recognizer = undefined;
+                    },
+                    function (err) {
+                        startRecognizeOnceAsyncButton.disabled = false;
+                        phraseDiv.innerHTML += err;
+                        window.console.log(err);
+
+                        recognizer.close();
+                        recognizer = undefined;
+                    });
+            });
+
+            if (!!window.SpeechSDK) {
+                SpeechSDK = window.SpeechSDK;
+                startRecognizeOnceAsyncButton.disabled = false;
+
+
+                document.getElementById('warning').style.display = 'none';
+
+                // in case we have a function for getting an authorization token, call it.
+                if (typeof RequestAuthorizationToken === "function") {
+                    RequestAuthorizationToken();
+                }
+            }
+        });
+    </script>
+
+    <!-- Optional authorization token request goes here -->
+
+    <!-- Sample code goes here -->
+</body>
+
+</html>

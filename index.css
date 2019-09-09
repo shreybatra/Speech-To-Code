@@ -1,0 +1,106 @@
+body {
+    background-color: papayawhip;
+    margin: 0;
+    padding: 0;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.header {
+    margin-top: 30px;
+    margin-bottom: 40px;
+    font-size: 60px;
+}
+
+.sb-reg {
+    display: flex;
+    justify-content: space-between;
+}
+
+.subscription {
+    display: flex;
+    font-size: 16px;
+    text-align: center
+}
+.region {
+    display: flex;
+    margin-left: 50px;
+    font-size: 16px;
+    text-align: center
+}
+
+.speak_button {
+    display: flex;
+    font-size: 20px;
+    margin-bottom: 20px;
+}
+
+.processing{
+    display: flex;
+    font-size: 26px;
+    padding: 0px;
+    margin: 0px;
+    color: blue;
+}
+
+.spoken_code {
+    display: flex;
+    margin-bottom: 25px;
+}
+
+.spoken_cmd_div {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.spoken_cmd {
+    display: flex;
+    width: 300px;
+    height: 300px;
+    margin-top: 10px;
+    font-size: 16px;
+}
+
+.code_area_div {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-left: 50px;
+}
+
+.code_area {
+    display: flex;
+    width: 300px;
+    height: 300px;
+    margin-top: 10px;
+    font-size: 16px;
+}
+
+.last_intent_div {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    
+}
+
+.last_intent {
+    display: flex;
+    width: 300px;
+    margin-top: 10px;
+    text-align: center;
+    font-size: 20px;
+    justify-content: center;
+    color: blue;
+}
+
+
+
